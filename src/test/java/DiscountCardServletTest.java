@@ -9,10 +9,12 @@ import ru.clevertec.dao.ConnectionPoolManager;
 import ru.clevertec.dao.impl.DiscountCardDao;
 import ru.clevertec.models.DiscountCard;
 import ru.clevertec.servlets.DiscountCardServlet;
+import ru.clevertec.servlets.ProductServlet;
 
 import javax.sql.DataSource;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.sql.Connection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,21 +37,32 @@ class DiscountCardServletTest {
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         discountCardDao = mock(DiscountCardDao.class);
+        ConnectionPoolManager connectionPoolManager = mock(ConnectionPoolManager.class);
+        Connection connection = mock(Connection.class);
+        DataSourceConfig dataSourceConfig = mock(DataSourceConfig.class);
+        DataSource dataSource = mock(DataSource.class);
+
+        when(dataSourceConfig.getDataSource()).thenReturn(dataSource);
+        when(connectionPoolManager.getConnection()).thenReturn(connection);
+
+        Field dataSourceConfigField = DiscountCardServlet.class.getDeclaredField("dataSourceConfig");
+        dataSourceConfigField.setAccessible(true);
+        dataSourceConfigField.set(servlet, dataSourceConfig);
+        dataSourceConfigField.setAccessible(false);
+
+
 
         servlet.init();
+
+        Field connectionPoolManagerField = DiscountCardServlet.class.getDeclaredField("connectionPoolManager");
+        connectionPoolManagerField.setAccessible(true);
+        connectionPoolManagerField.set(servlet, connectionPoolManager);
+        connectionPoolManagerField.setAccessible(false);
 
         Field daoField = DiscountCardServlet.class.getDeclaredField("discountCardDao");
         daoField.setAccessible(true);
         daoField.set(servlet, discountCardDao);
         daoField.setAccessible(false);
-    }
-
-    @AfterEach
-    void tearDown() {
-        servlet.destroy();
-        System.clearProperty("datasource.url");
-        System.clearProperty("datasource.username");
-        System.clearProperty("datasource.password");
     }
 
     @Test

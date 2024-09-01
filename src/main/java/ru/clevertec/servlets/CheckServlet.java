@@ -24,11 +24,11 @@ public class CheckServlet extends HttpServlet {
     private ConnectionPoolManager connectionPoolManager;
     private ProductDao productDao;
     private DiscountCardDao discountCardDao;
+    private DataSourceConfig dataSourceConfig = new DataSourceConfig();
 
     @Override
     public void init() throws ServletException {
         try {
-            DataSourceConfig dataSourceConfig = new DataSourceConfig();
             DataSource dataSource = dataSourceConfig.getDataSource();
             connectionPoolManager = new ConnectionPoolManager(dataSource, 10);
             productDao = new ProductDao(connectionPoolManager.getConnection());

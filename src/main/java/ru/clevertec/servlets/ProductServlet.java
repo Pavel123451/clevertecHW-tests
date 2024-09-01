@@ -22,11 +22,11 @@ import java.util.List;
 public class ProductServlet extends HttpServlet {
     private ProductDao productDao;
     private ConnectionPoolManager connectionPoolManager;
+    private DataSourceConfig dataSourceConfig = new DataSourceConfig();
 
     @Override
     public void init() throws ServletException {
         try {
-            DataSourceConfig dataSourceConfig = new DataSourceConfig();
             DataSource dataSource = dataSourceConfig.getDataSource();
             connectionPoolManager = new ConnectionPoolManager(dataSource, 10);
             productDao = new ProductDao(connectionPoolManager.getConnection());

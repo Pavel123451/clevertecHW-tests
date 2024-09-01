@@ -33,9 +33,6 @@ class CheckServletTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        System.setProperty("datasource.url", "jdbc:postgresql://localhost:5432/testdb");
-        System.setProperty("datasource.username", "postgres");
-        System.setProperty("datasource.password", "root");
 
         servlet = new CheckServlet();
         request = mock(HttpServletRequest.class);
@@ -44,8 +41,16 @@ class CheckServletTest {
         Connection connection = mock(Connection.class);
         productDao = mock(ProductDao.class);
         discountCardDao = mock(DiscountCardDao.class);
+        DataSourceConfig dataSourceConfig = mock(DataSourceConfig.class);
+        DataSource dataSource = mock(DataSource.class);
 
+        when(dataSourceConfig.getDataSource()).thenReturn(dataSource);
         when(connectionPoolManager.getConnection()).thenReturn(connection);
+
+        Field dataSourceConfigField = CheckServlet.class.getDeclaredField("dataSourceConfig");
+        dataSourceConfigField.setAccessible(true);
+        dataSourceConfigField.set(servlet, dataSourceConfig);
+        dataSourceConfigField.setAccessible(false);
 
         servlet.init();
 
@@ -53,14 +58,6 @@ class CheckServletTest {
         connectionPoolManagerField.setAccessible(true);
         connectionPoolManagerField.set(servlet, connectionPoolManager);
         connectionPoolManagerField.setAccessible(false);
-    }
-
-    @AfterEach
-    void tearDown() {
-        servlet.destroy();
-        System.clearProperty("datasource.url");
-        System.clearProperty("datasource.username");
-        System.clearProperty("datasource.password");
     }
 
     @Test

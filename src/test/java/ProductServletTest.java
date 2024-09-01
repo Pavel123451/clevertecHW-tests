@@ -8,11 +8,13 @@ import ru.clevertec.config.DataSourceConfig;
 import ru.clevertec.dao.ConnectionPoolManager;
 import ru.clevertec.dao.impl.ProductDao;
 import ru.clevertec.models.Product;
+import ru.clevertec.servlets.CheckServlet;
 import ru.clevertec.servlets.ProductServlet;
 
 import javax.sql.DataSource;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.sql.Connection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,29 +29,35 @@ class ProductServletTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        System.setProperty("datasource.url", "jdbc:postgresql://localhost:5432/testdb");
-        System.setProperty("datasource.username", "postgres");
-        System.setProperty("datasource.password", "root");
 
         servlet = new ProductServlet();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         productDao = mock(ProductDao.class);
+        ConnectionPoolManager connectionPoolManager = mock(ConnectionPoolManager.class);
+        Connection connection = mock(Connection.class);
+        DataSourceConfig dataSourceConfig = mock(DataSourceConfig.class);
+        DataSource dataSource = mock(DataSource.class);
+
+        when(dataSourceConfig.getDataSource()).thenReturn(dataSource);
+        when(connectionPoolManager.getConnection()).thenReturn(connection);
+
+        Field dataSourceConfigField = ProductServlet.class.getDeclaredField("dataSourceConfig");
+        dataSourceConfigField.setAccessible(true);
+        dataSourceConfigField.set(servlet, dataSourceConfig);
+        dataSourceConfigField.setAccessible(false);
 
         servlet.init();
+
+        Field connectionPoolManagerField = ProductServlet.class.getDeclaredField("connectionPoolManager");
+        connectionPoolManagerField.setAccessible(true);
+        connectionPoolManagerField.set(servlet, connectionPoolManager);
+        connectionPoolManagerField.setAccessible(false);
 
         Field daoField = ProductServlet.class.getDeclaredField("productDao");
         daoField.setAccessible(true);
         daoField.set(servlet, productDao);
         daoField.setAccessible(false);
-    }
-
-    @AfterEach
-    void tearDown() {
-        servlet.destroy();
-        System.clearProperty("datasource.url");
-        System.clearProperty("datasource.username");
-        System.clearProperty("datasource.password");
     }
 
     @Test
